@@ -8,4 +8,5 @@ public interface CitadService {
     List<CitadCodeDTO> getAllCitadCode();
     CitadCodeDTO getByCitadCodeId(Long id);
     CitadCodeDTO getByCitadCode(String citadCode);
+    void updateCitadCodesFromExcel();
 }

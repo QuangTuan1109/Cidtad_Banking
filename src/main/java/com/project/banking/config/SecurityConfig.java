@@ -1,6 +1,7 @@
 package com.project.banking.config;
 
 import com.project.banking.repository.CitadCodeRepository;
+import com.project.banking.util.ExcelReader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -63,6 +64,11 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public ExcelReader excelReader() {
+        return new ExcelReader();
     }
 
 }
