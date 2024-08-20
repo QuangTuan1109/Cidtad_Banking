@@ -22,16 +22,11 @@ public class CitadCodeEntity {
     @Column(name = "citad_code", unique = true, nullable = false)
     private String citadCode;
 
-    private String description;
-
     @Column(name = "bank_name", nullable = false)
     private String bankName;
 
     @Column(name = "branch_name", nullable = false)
     private String branchName;
-
-    @Column(name = "city", nullable = false)
-    private String city;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;

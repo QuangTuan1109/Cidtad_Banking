@@ -8,10 +8,8 @@ public class CitadCodeMapper {
         CitadCodeEntity citadCodeEntity = new CitadCodeEntity(
                 citadCodeDTO.getId(),
                 citadCodeDTO.getCitadCode(),
-                citadCodeDTO.getDescription(),
                 citadCodeDTO.getBankName(),
                 citadCodeDTO.getBranchName(),
-                citadCodeDTO.getCity(),
                 citadCodeDTO.getUpdatedAt()
         );
 
@@ -22,10 +20,8 @@ public class CitadCodeMapper {
         CitadCodeDTO citadCodeDTO = new CitadCodeDTO(
                 citadCodeEntity.getId(),
                 citadCodeEntity.getCitadCode(),
-                citadCodeEntity.getDescription(),
                 citadCodeEntity.getBankName(),
                 citadCodeEntity.getBranchName(),
-                citadCodeEntity.getCity(),
                 citadCodeEntity.getUpdatedAt()
         );
 
