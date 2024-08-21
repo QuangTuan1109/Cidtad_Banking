@@ -58,6 +58,10 @@ public class CitadCodeService implements CitadService {
                 .map(CitadCodeDTO::getCitadCode)
                 .collect(Collectors.toList());
 
+        List<CitadCodeEntity> existingCitadCodes = citadCodeRepository.findAll();
+
+        detectAndLogChanges(newCitadCodes, existingCitadCodes, citadCodesInExcel);
+
         // Update or add entries
         for (CitadCodeDTO citadCodeDTO : newCitadCodes) {
             if (isValid(citadCodeDTO)) {
@@ -68,25 +72,42 @@ public class CitadCodeService implements CitadService {
                             existingCode.setBankName(citadCodeEntity.getBankName());
                             existingCode.setBranchName(citadCodeEntity.getBranchName());
                             citadCodeRepository.save(existingCode);
-                        }, () -> {
-                            citadCodeRepository.save(citadCodeEntity);
-                            logger.info("Added new CitadCode: " + citadCodeEntity.getCitadCode());
-                        });
+                        }, () -> citadCodeRepository.save(citadCodeEntity));
             } else {
                 logger.error("Invalid data: " + citadCodeDTO);
             }
         }
 
         // Remove entries not present in the Excel file
-        List<CitadCodeEntity> existingCitadCodes = citadCodeRepository.findAll();
         for (CitadCodeEntity citadCodeEntity : existingCitadCodes) {
             if (!citadCodesInExcel.contains(citadCodeEntity.getCitadCode())) {
                 citadCodeRepository.delete(citadCodeEntity);
-                logger.info("Deleted from DB: " + citadCodeEntity.getCitadCode());
             }
         }
     }
 
+    private void detectAndLogChanges(List<CitadCodeDTO> newCitadCodes, List<CitadCodeEntity> existingCitadCodes, List<String> citadCodesInExcel) {
+
+        for (CitadCodeDTO citadCodeDTO : newCitadCodes) {
+            CitadCodeEntity existingEntity = existingCitadCodes.stream()
+                    .filter(e -> e.getCitadCode().equals(citadCodeDTO.getCitadCode()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (existingEntity == null) {
+                logger.warn("New CitadCode detected: " + citadCodeDTO.getCitadCode());
+            } else if (!existingEntity.getBankName().equals(citadCodeDTO.getBankName()) ||
+                    !existingEntity.getBranchName().equals(citadCodeDTO.getBranchName())) {
+                logger.warn("CitadCode updated: " + citadCodeDTO.getCitadCode());
+            }
+        }
+
+        for (CitadCodeEntity existingEntity : existingCitadCodes) {
+            if (!citadCodesInExcel.contains(existingEntity.getCitadCode())) {
+                logger.warn("CitadCode deleted: " + existingEntity.getCitadCode());
+            }
+        }
+    }
 
     private boolean isValid(CitadCodeDTO dto) {
         if (dto.getId() == null || dto.getCitadCode().isEmpty() || dto.getBankName().isEmpty() || dto.getBranchName().isEmpty()) {
