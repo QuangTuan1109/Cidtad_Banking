@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+
 @Component
 public class CitadCodeSyncJob {
     private static final Logger LOGGER = LoggerFactory.getLogger(CitadCodeSyncJob.class);
@@ -16,8 +18,8 @@ public class CitadCodeSyncJob {
         this.citadCodeService = citadCodeService;
     }
 
-    @Scheduled(cron = "0 0 0 * * *")
-    public void syncCitadCodeFromExcel() {
+    @Scheduled(cron = "*/5 * * * * *")
+    public void syncCitadCodeFromExcel() throws IOException {
         citadCodeService.updateCitadCodesFromExcel();
     }
 }

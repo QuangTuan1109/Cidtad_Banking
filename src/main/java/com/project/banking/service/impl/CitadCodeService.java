@@ -6,7 +6,8 @@ import com.project.banking.mapper.CitadCodeMapper;
 import com.project.banking.repository.CitadCodeRepository;
 import com.project.banking.service.CitadService;
 import com.project.banking.util.ExcelReader;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -18,6 +19,7 @@ public class CitadCodeService implements CitadService {
 
     private final CitadCodeRepository citadCodeRepository;
     private final ExcelReader excelReader;
+    private static final Logger logger = LoggerFactory.getLogger(CitadCodeService.class);
 
     public CitadCodeService(CitadCodeRepository citadCodeRepository, ExcelReader excelReader) {
         this.citadCodeRepository = citadCodeRepository;
@@ -48,22 +50,48 @@ public class CitadCodeService implements CitadService {
     }
 
     @Override
-    public void updateCitadCodesFromExcel() {
+    public void updateCitadCodesFromExcel() throws IOException {
         String excelFilePath = "C:\\Users\\ADMIN\\Downloads\\personal-internet-local-clearing-code.xlsx";
+        List<CitadCodeDTO> newCitadCodes = excelReader.readCitadCodeDTOFromExcel(excelFilePath);
 
-        try {
-            List<CitadCodeEntity> newCitadCodes = excelReader.readCitadCodeFromExcel(excelFilePath);
+        List<String> citadCodesInExcel = newCitadCodes.stream()
+                .map(CitadCodeDTO::getCitadCode)
+                .collect(Collectors.toList());
 
-            for (CitadCodeEntity citadCodeEntity : newCitadCodes) {
+        // Update or add entries
+        for (CitadCodeDTO citadCodeDTO : newCitadCodes) {
+            if (isValid(citadCodeDTO)) {
+                CitadCodeEntity citadCodeEntity = CitadCodeMapper.mapToCitadCode(citadCodeDTO);
+
                 citadCodeRepository.findByCitadCode(citadCodeEntity.getCitadCode())
                         .ifPresentOrElse(existingCode -> {
                             existingCode.setBankName(citadCodeEntity.getBankName());
                             existingCode.setBranchName(citadCodeEntity.getBranchName());
                             citadCodeRepository.save(existingCode);
-                        }, () -> citadCodeRepository.save(citadCodeEntity));
+                        }, () -> {
+                            citadCodeRepository.save(citadCodeEntity);
+                            logger.info("Added new CitadCode: " + citadCodeEntity.getCitadCode());
+                        });
+            } else {
+                logger.error("Invalid data: " + citadCodeDTO);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
+
+        // Remove entries not present in the Excel file
+        List<CitadCodeEntity> existingCitadCodes = citadCodeRepository.findAll();
+        for (CitadCodeEntity citadCodeEntity : existingCitadCodes) {
+            if (!citadCodesInExcel.contains(citadCodeEntity.getCitadCode())) {
+                citadCodeRepository.delete(citadCodeEntity);
+                logger.info("Deleted from DB: " + citadCodeEntity.getCitadCode());
+            }
+        }
+    }
+
+
+    private boolean isValid(CitadCodeDTO dto) {
+        if (dto.getId() == null || dto.getCitadCode().isEmpty() || dto.getBankName().isEmpty() || dto.getBranchName().isEmpty()) {
+            return false;
+        }
+        return true;
     }
 }

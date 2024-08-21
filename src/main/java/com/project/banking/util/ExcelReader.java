@@ -12,26 +12,26 @@ import java.util.Date;
 import java.util.List;
 
 public class ExcelReader {
-    public List<CitadCodeEntity> readCitadCodeFromExcel(String filePath) throws IOException {
-        List<CitadCodeEntity> citadCodeEntityList = new ArrayList<>();
+    public List<CitadCodeDTO> readCitadCodeDTOFromExcel(String filePath) throws IOException {
+        List<CitadCodeDTO> citadCodeDTOList = new ArrayList<>();
 
         FileInputStream fileInputStream = new FileInputStream(filePath);
         Workbook workbook = new XSSFWorkbook(fileInputStream);
         Sheet sheet = workbook.getSheetAt(0);
 
         for (Row row : sheet) {
-            CitadCodeEntity citadCodeEntity = new CitadCodeEntity();
-            citadCodeEntity.setId(getLongCellValue(row.getCell(0)));
-            citadCodeEntity.setCitadCode(getCellValue(row.getCell(1)));
-            citadCodeEntity.setBankName(getCellValue(row.getCell(2)));
-            citadCodeEntity.setBranchName(getCellValue(row.getCell(3)));
-            citadCodeEntityList.add(citadCodeEntity);
+            CitadCodeDTO citadCodeDTO = new CitadCodeDTO();
+            citadCodeDTO.setId(getLongCellValue(row.getCell(0)));
+            citadCodeDTO.setCitadCode(getCellValue(row.getCell(1)));
+            citadCodeDTO.setBankName(getCellValue(row.getCell(2)));
+            citadCodeDTO.setBranchName(getCellValue(row.getCell(3)));
+            citadCodeDTOList.add(citadCodeDTO);
         }
 
         workbook.close();
         fileInputStream.close();
 
-        return citadCodeEntityList;
+        return citadCodeDTOList;
     }
 
     private String getCellValue(Cell cell) {
